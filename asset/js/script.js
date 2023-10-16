@@ -24,18 +24,20 @@ function loadBooks() {
 function addBook() {
   const titleInput = document.getElementById("title");
   const authorInput = document.getElementById("author");
+  const yearInput = document.getElementById("year");
   const statusInput = document.getElementById("status");
 
   const title = titleInput.value;
   const author = authorInput.value;
+  const year = parseInt(yearInput.value);
   const isComplete = statusInput.value === "selesai";
 
-  if (title && author) {
+  if (title && author && !isNaN(year) && year > 0) {
     const newBook = {
-      id: generateId(), // Fungsi untuk menghasilkan ID unik
+      id: generateId(),
       title,
       author,
-      year: new Date().getFullYear(), // tahun sekarang
+      year,
       isComplete,
     };
 
@@ -47,16 +49,15 @@ function addBook() {
 
     titleInput.value = "";
     authorInput.value = "";
-
+    yearInput.value = "";
     loadBooks();
   } else {
-    alert("Harap isi judul dan penulis buku!");
+    alert("Harap isi semua informasi buku dengan benar!");
   }
 }
 
 function generateId() {
-  // Fungsi untuk menghasilkan ID unik, contoh sederhana
-  return Math.floor(Math.random() * 1000);
+  return new Date().getTime();
 }
 
 function createBookCard(book) {
@@ -69,8 +70,8 @@ function createBookCard(book) {
         <p><strong>Status:</strong> ${
           book.isComplete ? "Selesai Dibaca" : "Belum Selesai"
         }</p>
-        <button onclick="moveBook('${book.id}')">Pindahkan</button>
-        <button onclick="deleteBook('${book.id}')">Hapus</button>
+        <button onclick="moveBook(${book.id})">Pindahkan</button>
+        <button onclick="deleteBook(${book.id})">Hapus</button>
     `;
   return card;
 }
@@ -78,15 +79,16 @@ function createBookCard(book) {
 function moveBook(id) {
   const books = JSON.parse(localStorage.getItem("books")) || [];
 
-  const index = books.findIndex((book) => book.id === id);
+  const updatedBooks = books.map((book) => {
+    if (book.id === id) {
+      book.isComplete = !book.isComplete;
+    }
+    return book;
+  });
 
-  if (index !== -1) {
-    books[index].isComplete = !books[index].isComplete;
+  localStorage.setItem("books", JSON.stringify(updatedBooks));
 
-    localStorage.setItem("books", JSON.stringify(books));
-
-    loadBooks();
-  }
+  loadBooks();
 }
 
 function deleteBook(id) {
