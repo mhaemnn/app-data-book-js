@@ -13,10 +13,10 @@ function loadBooks() {
 
   books.forEach((book) => {
     const bookCard = createBookCard(book);
-    if (book.status === "belum") {
-      belumSelesaiShelf.appendChild(bookCard);
-    } else {
+    if (book.isComplete) {
       selesaiShelf.appendChild(bookCard);
+    } else {
+      belumSelesaiShelf.appendChild(bookCard);
     }
   });
 }
@@ -28,13 +28,15 @@ function addBook() {
 
   const title = titleInput.value;
   const author = authorInput.value;
-  const status = statusInput.value;
+  const isComplete = statusInput.value === "selesai";
 
   if (title && author) {
     const newBook = {
+      id: generateId(), // Fungsi untuk menghasilkan ID unik
       title,
       author,
-      status,
+      year: new Date().getFullYear(), // tahun sekarang
+      isComplete,
     };
 
     const books = JSON.parse(localStorage.getItem("books")) || [];
@@ -52,35 +54,34 @@ function addBook() {
   }
 }
 
+function generateId() {
+  // Fungsi untuk menghasilkan ID unik, contoh sederhana
+  return Math.floor(Math.random() * 1000);
+}
+
 function createBookCard(book) {
   const card = document.createElement("div");
   card.className = "book-card";
   card.innerHTML = `
         <h3>${book.title}</h3>
         <p><strong>Penulis:</strong> ${book.author}</p>
+        <p><strong>Tahun:</strong> ${book.year}</p>
         <p><strong>Status:</strong> ${
-          book.status === "belum" ? "Belum Selesai" : "Selesai Dibaca"
+          book.isComplete ? "Selesai Dibaca" : "Belum Selesai"
         }</p>
-        <button onclick="moveBook('${book.title}', '${book.author}', '${
-    book.status
-  }')">Pindahkan</button>
-        <button onclick="deleteBook('${book.title}', '${book.author}', '${
-    book.status
-  }')">Hapus</button>
+        <button onclick="moveBook('${book.id}')">Pindahkan</button>
+        <button onclick="deleteBook('${book.id}')">Hapus</button>
     `;
   return card;
 }
 
-function moveBook(title, author, status) {
+function moveBook(id) {
   const books = JSON.parse(localStorage.getItem("books")) || [];
 
-  const index = books.findIndex(
-    (book) =>
-      book.title === title && book.author === author && book.status === status
-  );
+  const index = books.findIndex((book) => book.id === id);
 
   if (index !== -1) {
-    books[index].status = status === "belum" ? "selesai" : "belum";
+    books[index].isComplete = !books[index].isComplete;
 
     localStorage.setItem("books", JSON.stringify(books));
 
@@ -88,17 +89,10 @@ function moveBook(title, author, status) {
   }
 }
 
-function deleteBook(title, author, status) {
+function deleteBook(id) {
   let books = JSON.parse(localStorage.getItem("books")) || [];
 
-  books = books.filter(
-    (book) =>
-      !(
-        book.title === title &&
-        book.author === author &&
-        book.status === status
-      )
-  );
+  books = books.filter((book) => book.id !== id);
 
   localStorage.setItem("books", JSON.stringify(books));
 
